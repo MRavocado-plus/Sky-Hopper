@@ -1,1 +1,75 @@
+:root {
+  --dark: #10233e;
+  --cream: #fff8e7;
+  --yellow: #ffd166;
+  --orange: #ff9f1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+   margin: 0;
+          
+   min-height: 100vh;
+   display: grid;
+  place-items: center;
+       overflow: hidden;
+    background: linear-gradient(150deg, #10233e, #246b8d);
+  font-family: Arial, sans-serif;
+  color: var(--dark);
+}
+
+.game-wrapper {
+  width: min(94vw, 520px);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  margin-bottom: 12px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(26px, 7vw, 38px);
+}
+
+header p {
+  margin: 4px 0 0;
+  color: #d9f4ff;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.soundButton {
+  border: 2px solid white;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.game-card {
+  position: relative;
+  overflow: hidden;
+  border: 4px solid var(--cream);
+  border-radius: 25px;
+  background: #7bdcff;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
 
