@@ -46,7 +46,7 @@ header p {
   text-transform: uppercase;
 }
 
-.soundButton {
+#soundButton {
   border: 2px solid white;
   border-radius: 12px;
   padding: 9px 12px;
