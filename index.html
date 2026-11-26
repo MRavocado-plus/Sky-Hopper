@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky Hopper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-wrapper">
+    <header>
+      <div>
+        <h1>Sky Hopper</h1>  
+        <p>Dodge. Collect. Fly higher.</p>
+      </div>
+
+      <button id="soundButton">🔊</button>
+    </header> 
+
+    <section class="game-card">
+      <canvas id="gameCanvas" width="480" height="720"></canvas>
+
+      <div class="hud">
+        <div>
+          <small>SCORE</small>
+          <strong id="score">0</strong>
+        </div>
+
+        <div>
+          <small>BEST</small>
+          <strong id="best">0</strong>
+        </div>
+      </div>
+
+      <div id="powerupStatus" class="powerup-status"></div>
+
+      <div id="overlay" class="overlay">
+        <div class="panel">
+          <h2 id="overlayTitle">Sky Hopper</h2>
+          <p id="overlayText">
+            Press Space, click, or tap to fly through the pipes.
+            Collect power-ups to help you!.
+          </p>
+          <button id="playButton">Start Flying</button>
+        </div>
+    </div> 
+    </section>
