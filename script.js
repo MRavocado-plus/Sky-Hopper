@@ -428,6 +428,7 @@ function drawPipePart(x, y, width, height, isTop) {
   ctx.fillStyle = "#a7e65f";
   ctx.fillRect(x + 9, capY + 4, 6, capHeight - 8);
 }
+
 function drawPowerup(powerup) {
   if (powerup.collected) return;
 
@@ -474,11 +475,23 @@ function drawPowerup(powerup) {
   ctx.restore();
 }
 
-
 function drawBird() {
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(bird.rotation);
+
+  if (shieldIsActive()) {
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = "#6c63ff";
+    ctx.beginPath();
+    ctx.arc(0, 0, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "#6c63ff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
 
   ctx.fillStyle = "#f28f16";
   ctx.beginPath();
@@ -534,6 +547,7 @@ function drawGround() {
 function draw() {
   drawBackground();
   pipes.forEach(drawPipe);
+  powerups.forEach(drawPowerup);
   drawBird();
   drawGround();
 }
@@ -568,4 +582,3 @@ window.addEventListener("keydown", handleInput);
 
 resetGame();
 gameLoop();
-
