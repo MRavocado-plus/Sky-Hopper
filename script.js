@@ -428,6 +428,52 @@ function drawPipePart(x, y, width, height, isTop) {
   ctx.fillStyle = "#a7e65f";
   ctx.fillRect(x + 9, capY + 4, 6, capHeight - 8);
 }
+function drawPowerup(powerup) {
+  if (powerup.collected) return;
+
+  const y = powerup.y + Math.sin(powerup.pulse) * 4;
+
+  const powerupData = {
+    shield: { color: "#6267f5", symbol: "◆" },
+    slow: { color: "#a855f7", symbol: "◷" },
+    heavy: { color: "#ef4444", symbol: "↓" },
+    unstable: { color: "#f97316", symbol: "〰" },
+    wideGap: { color: "#22c55e", symbol: "↔" },
+    tightGap: { color: "#dc2626", symbol: "↕" },
+    superFlap: { color: "#eab308", symbol: "⚡" },
+    star: { color: "#facc15", symbol: "★" }
+  };
+
+  const data = powerupData[powerup.type];
+
+  ctx.save();
+  ctx.translate(powerup.x, y);
+
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = data.color;
+  ctx.beginPath();
+  ctx.arc(0, 0, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = data.color;
+  ctx.beginPath();
+  ctx.arc(0, 0, powerup.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.fillStyle = "white";
+  ctx.font = "bold 19px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(data.symbol, 0, 1);
+
+  ctx.restore();
+}
+
 
 function drawBird() {
   ctx.save();
