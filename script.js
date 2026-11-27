@@ -51,11 +51,16 @@ function resetGame() {
   powerups = [];
   score = 0;
   spawnTimer = 0;
+  powerupTimer = 250;
   gameSpeed = 2.8;
   groundOffset = 0;
   activePowerup = null;
+  gapModifier = 0;
+  pipeEffectTime = 0;
+  unstableTime = 0;
 
   scoreText.textContent = "0";
+  powerupStatus.classList.remove("visible");
 }
 
 function startGame() {
@@ -86,11 +91,18 @@ function endGame() {
 
 function flap() {
   if (gameState !== "playing") return;
-  bird.velocity = bird.flapStrength;
+
+  if (superFlapIsActive()) {
+    bird.velocity = -10;
+  } else {
+    bird.velocity = bird.flapStrength;
+  }
 }
 
 function spawnPipe() {
-  const gap = Math.max(150, 190 - score * 1.5);
+  const normalGap = Math.max(150, 190 - score * 1.5);
+  const gap = Math.max(105, Math.min(270, normalGap + gapModifier));
+
   const topMinimum = 80;
   const topMaximum = HEIGHT - GROUND_HEIGHT - gap - 80;
   const top = topMinimum + Math.random() * (topMaximum - topMinimum);
@@ -104,21 +116,173 @@ function spawnPipe() {
   });
 }
 
+function spawnPowerup() {
+  const powerupTypes = [
+    "shield",
+    "slow",
+    "heavy",
+    "unstable",
+    "wideGap",
+    "tightGap",
+    "superFlap",
+    "star"
+  ];
+
+  const type =
+    powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+
+  powerups.push({
+    x: WIDTH + 30,
+    y: 120 + Math.random() * 390,
+    radius: 18,
+    type,
+    pulse: 0,
+    collected: false
+  });
+}
+
+function activatePowerup(type) {
+  activePowerup = {
+    type,
+    timeLeft: 480
+  };
+
+  if (type === "shield") {
+    activePowerup.timeLeft = 480;
+    powerupStatus.textContent = "🛡️ SHIELD: ONE HIT PROTECTED";
+  }
+
+  if (type === "slow") {
+    activePowerup.timeLeft = 360;
+    powerupStatus.textContent = "⏳ SLOW TIME ACTIVE";
+  }
+
+  if (type === "heavy") {
+    activePowerup.timeLeft = 300;
+    powerupStatus.textContent = "⚓ HEAVY GRAVITY: FALLING FAST";
+  }
+
+  if (type === "unstable") {
+    activePowerup.timeLeft = 360;
+    unstableTime = 360;
+    powerupStatus.textContent = "🌀 UNSTABLE: BIRD IS WOBBLING";
+  }
+
+  if (type === "wideGap") {
+    activePowerup.timeLeft = 600;
+    gapModifier = 75;
+    pipeEffectTime = 600;
+    powerupStatus.textContent = "↔️ WIDE GAPS: MUCH EASIER";
+  }
+
+  if (type === "tightGap") {
+    activePowerup.timeLeft = 600;
+    gapModifier = -55;
+    pipeEffectTime = 600;
+    powerupStatus.textContent = "↕️ TIGHT GAPS: GOOD LUCK";
+  }
+
+  if (type === "superFlap") {
+    activePowerup.timeLeft = 300;
+    powerupStatus.textContent = "⚡ SUPER FLAP ACTIVE";
+  }
+
+  if (type === "star") {
+    score += 5;
+    scoreText.textContent = score;
+    activePowerup.timeLeft = 90;
+    powerupStatus.textContent = "⭐ BONUS: +5 POINTS";
+  }
+
+  powerupStatus.classList.add("visible");
+}
+
+function shieldIsActive() {
+  return activePowerup?.type === "shield";
+}
+
+function slowMotionIsActive() {
+  return activePowerup?.type === "slow";
+}
+
+function heavyGravityIsActive() {
+  return activePowerup?.type === "heavy";
+}
+
+function superFlapIsActive() {
+  return activePowerup?.type === "superFlap";
+}
+
+function unstableIsActive() {
+  return activePowerup?.type === "unstable";
+}
+
+function updatePowerup() {
+  if (!activePowerup) return;
+
+  activePowerup.timeLeft--;
+
+  if (activePowerup.timeLeft <= 0) {
+    activePowerup = null;
+    powerupStatus.classList.remove("visible");
+
+    if (gapModifier !== 0) {
+      gapModifier = 0;
+      pipeEffectTime = 0;
+    }
+  }
+}
+
 function update() {
   if (gameState !== "playing") return;
 
-  bird.velocity += bird.gravity;
-  bird.y += bird.velocity;
+  const timeScale = slowMotionIsActive() ? 0.45 : 1;
+  const currentSpeed = gameSpeed * timeScale;
+
+  let gravity = bird.gravity;
+
+  if (heavyGravityIsActive()) {
+    gravity = 0.82;
+  }
+
+  bird.velocity += gravity * timeScale;
+  bird.y += bird.velocity * timeScale;
+
+  if (unstableIsActive()) {
+    unstableTime--;
+    bird.y += Math.sin(unstableTime * 0.18) * 2.5;
+
+    if (unstableTime <= 0) {
+      activePowerup = null;
+      powerupStatus.classList.remove("visible");
+    }
+  }
+
+  if (pipeEffectTime > 0) {
+    pipeEffectTime--;
+
+    if (pipeEffectTime <= 0) {
+      gapModifier = 0;
+    }
+  }
+
   bird.rotation = Math.min(Math.PI / 2, bird.velocity / 10);
 
-  spawnTimer--;
+  spawnTimer -= timeScale;
+  powerupTimer -= timeScale;
+
   if (spawnTimer <= 0) {
     spawnPipe();
     spawnTimer = 105;
   }
 
+  if (powerupTimer <= 0) {
+    spawnPowerup();
+    powerupTimer = 350 + Math.random() * 150;
+  }
+
   pipes.forEach(pipe => {
-    pipe.x -= gameSpeed;
+    pipe.x -= currentSpeed;
 
     if (!pipe.passed && pipe.x + pipe.width < bird.x) {
       pipe.passed = true;
@@ -129,7 +293,17 @@ function update() {
   });
 
   pipes = pipes.filter(pipe => pipe.x + pipe.width > -20);
-  groundOffset = (groundOffset + gameSpeed) % 48;
+
+  powerups.forEach(powerup => {
+    powerup.x -= currentSpeed;
+    powerup.pulse += 0.08;
+  });
+
+  powerups = powerups.filter(powerup => powerup.x > -60);
+
+  updatePowerup();
+
+  groundOffset = (groundOffset + currentSpeed) % 48;
 
   checkCollisions();
 }
@@ -147,8 +321,14 @@ function checkCollisions() {
     birdBox.y + birdBox.height > HEIGHT - GROUND_HEIGHT;
 
   if (outsideScreen) {
-    endGame();
-    return;
+    if (shieldIsActive()) {
+      activePowerup = null;
+      powerupStatus.classList.remove("visible");
+      bird.velocity = -5;
+    } else {
+      endGame();
+      return;
+    }
   }
 
   for (const pipe of pipes) {
@@ -159,8 +339,24 @@ function checkCollisions() {
         birdBox.y + birdBox.height > pipe.top + pipe.gap);
 
     if (collision) {
-      endGame();
-      return;
+      if (shieldIsActive()) {
+        activePowerup = null;
+        powerupStatus.classList.remove("visible");
+        bird.velocity = -5;
+        pipe.x = -200;
+      } else {
+        endGame();
+        return;
+      }
+    }
+  }
+
+  for (const powerup of powerups) {
+    const distance = Math.hypot(bird.x - powerup.x, bird.y - powerup.y);
+
+    if (distance < powerup.radius + 20 && !powerup.collected) {
+      powerup.collected = true;
+      activatePowerup(powerup.type);
     }
   }
 }
