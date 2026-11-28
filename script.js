@@ -247,7 +247,7 @@ function activatePowerup(type) {
   }
 
   if (type === "star") {
-    score + = 5;
+    score += 5;
     scoreText.textContent = score;
     activePowerup.timeLeft = 90;
     powerupStatus.textContent = "⭐ BONUS: +5 POINTS";
@@ -305,12 +305,12 @@ function update() {
     gravity = 0.82;
   }
 
-  bird.velocity + = gravity * timeScale;
-  bird.y + = bird.velocity * timeScale;
+  bird.velocity += gravity * timeScale;
+  bird.y += bird.velocity * timeScale;
 
   if (unstableIsActive()) {
     unstableTime--;
-    bird.y + = Math.sin(unstableTime * 0.18) * 2.5;
+    bird.y += Math.sin(unstableTime * 0.18) * 2.5;
 
     if (unstableTime <= 0) {
       activePowerup = null;
@@ -328,8 +328,8 @@ function update() {
 
   bird.rotation = Math.min(Math.PI / 2, bird.velocity / 10);
 
-  spawnTimer - = timeScale;
-  powerupTimer - = timeScale;
+  spawnTimer -= timeScale;
+  powerupTimer -= timeScale;
 
   if (spawnTimer <= 0) {
     spawnPipe();
@@ -342,7 +342,7 @@ function update() {
   }
 
   pipes.forEach(pipe => {
-    pipe.x - = currentSpeed;
+    pipe.x -= currentSpeed;
 
     if (!pipe.passed && pipe.x + pipe.width < bird.x) {
       pipe.passed = true;
@@ -356,8 +356,8 @@ function update() {
   pipes = pipes.filter(pipe => pipe.x + pipe.width > -20);
 
   powerups.forEach(powerup => {
-    powerup.x - = currentSpeed;
-    powerup.pulse + = 0.08;
+    powerup.x -= currentSpeed;
+    powerup.pulse += 0.08;
   });
 
   powerups = powerups.filter(powerup => powerup.x > -60);
@@ -606,7 +606,7 @@ function drawGround() {
 
   ctx.fillStyle = "#b87932";
 
-  for (let x = -groundOffset; x < WIDTH + 48; x + = 48) {
+  for (let x = -groundOffset; x < WIDTH + 48; x += 48) {
     ctx.fillRect(x, HEIGHT - GROUND_HEIGHT + 20, 24, 5);
     ctx.fillRect(x + 30, HEIGHT - GROUND_HEIGHT + 46, 14, 5);
     ctx.fillRect(x + 8, HEIGHT - GROUND_HEIGHT + 70, 26, 5);
