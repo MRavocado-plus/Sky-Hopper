@@ -31,8 +31,6 @@ let activePowerup;
 let gapModifier = 0;
 let pipeEffectTime = 0;
 let unstableTime = 0;
-let unstableDirection = 1;
-let bonusPoints = 0;
 
 bestText.textContent = bestScore;
 
