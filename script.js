@@ -33,7 +33,61 @@ let pipeEffectTime = 0;
 let unstableTime = 0;
 let unstableDirection = 1;
 let bonusPoints = 0;
+
 bestText.textContent = bestScore;
+
+function setupAudio() {
+  if (!audioContext) {
+    audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+  }
+
+  if (audioContext.state === "suspended") { 
+    audioContext.resume();
+  }
+}
+
+function playSound(type) {
+  if (!soundEnabled) return;
+
+  setupAudio();
+
+  const sounds = {
+    flap: [330, 520, 0.09],
+    score: [540, 760, 0.13], 
+    powerup: [420, 920, 0.28], 
+    hit: [180, 70, 0.22]
+  };
+
+  const [startFrequency, endFrequency, duration] = sounds[type];  
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = type === "hit" ? "sawtooth" : "triangle";
+  oscillator.frequency.setValueAtTime(
+    startFrequency,
+    audioContext.currentTime
+  );
+
+  oscillator.frequency.exponentialRampToValueAtTime(
+    endFrequency,
+    audioContext.currentTime + duration
+  );
+
+  gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioContext.currentTime + duration
+  );
+
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + duration);
+}
 
 function resetGame() {
   bird = {
@@ -64,6 +118,7 @@ function resetGame() {
 }
 
 function startGame() {
+  setupAudio();
   resetGame();
   gameState = "playing";
   overlay.style.display = "none";
@@ -72,6 +127,7 @@ function startGame() {
 
 function endGame() {
   gameState = "gameover";
+  playSound("hit");
 
   if (score > bestScore) {
     bestScore = score;
@@ -97,6 +153,8 @@ function flap() {
   } else {
     bird.velocity = bird.flapStrength;
   }
+
+  playSound("flap");
 }
 
 function spawnPipe() {
@@ -195,6 +253,7 @@ function activatePowerup(type) {
   }
 
   powerupStatus.classList.add("visible");
+  playSound("powerup");
 }
 
 function shieldIsActive() {
@@ -213,12 +272,12 @@ function superFlapIsActive() {
   return activePowerup?.type === "superFlap";
 }
 
-function unstableIsActive() {
+function unstableIsActive() { 
   return activePowerup?.type === "unstable";
-}
+} 
 
 function updatePowerup() {
-  if (!activePowerup) return;
+  if (!activePowerup) return; 
 
   activePowerup.timeLeft--;
 
@@ -289,6 +348,7 @@ function update() {
       score++;
       scoreText.textContent = score;
       gameSpeed = Math.min(4.4, 2.8 + score * 0.035);
+      playSound("score");
     }
   });
 
@@ -360,9 +420,9 @@ function checkCollisions() {
     }
   }
 }
-
 function drawBackground() {
   const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+
   gradient.addColorStop(0, "#74d9ff");
   gradient.addColorStop(0.65, "#b9f0ff");
   gradient.addColorStop(1, "#fef0b5");
@@ -397,6 +457,7 @@ function drawCloud(x, y, size) {
 
 function drawPipe(pipe) {
   drawPipePart(pipe.x, 0, pipe.width, pipe.top, true);
+
   drawPipePart(
     pipe.x,
     pipe.top + pipe.gap,
@@ -534,9 +595,15 @@ function drawGround() {
   ctx.fillRect(0, HEIGHT - GROUND_HEIGHT, WIDTH, 12);
 
   ctx.fillStyle = "#d7a34d";
-  ctx.fillRect(0, HEIGHT - GROUND_HEIGHT + 12, WIDTH, GROUND_HEIGHT - 12);
+  ctx.fillRect(
+    0,
+    HEIGHT - GROUND_HEIGHT + 12,
+    WIDTH,
+    GROUND_HEIGHT - 12
+  );
 
   ctx.fillStyle = "#b87932";
+
   for (let x = -groundOffset; x < WIDTH + 48; x += 48) {
     ctx.fillRect(x, HEIGHT - GROUND_HEIGHT + 20, 24, 5);
     ctx.fillRect(x + 30, HEIGHT - GROUND_HEIGHT + 46, 14, 5);
@@ -546,6 +613,7 @@ function drawGround() {
 
 function draw() {
   drawBackground();
+
   pipes.forEach(drawPipe);
   powerups.forEach(drawPowerup);
   drawBird();
@@ -577,8 +645,19 @@ function handleInput(event) {
 }
 
 playButton.addEventListener("click", startGame);
+
 canvas.addEventListener("pointerdown", handleInput);
 window.addEventListener("keydown", handleInput);
+
+soundButton.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  soundButton.textContent = soundEnabled ? "🔊" : "🔇";
+
+  if (soundEnabled) {
+    setupAudio();
+    playSound("powerup");
+  }
+});
 
 resetGame();
 gameLoop();
