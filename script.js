@@ -187,15 +187,33 @@ function spawnPowerup() {
   const type =
     powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
 
+  const spawnX = WIDTH + 30;
+  let spawnY = 140 + Math.random() * (HEIGHT - GROUND_HEIGHT - 280);
+
+  const nearbyPipe = pipes.find(
+    pipe => spawnX + 40 > pipe.x - 30 && spawnX - 40 < pipe.x + pipe.width + 30
+  );
+
+  if (nearbyPipe) {
+    spawnY = nearbyPipe.top + nearbyPipe.gap / 2;
+  } else if (pipes.length > 0) {
+    const lastPipe = pipes[pipes.length - 1];
+    const lastGapCenter = lastPipe.top + lastPipe.gap / 2;
+    const minY = Math.max(110, lastGapCenter - 140);
+    const maxY = Math.min(HEIGHT - GROUND_HEIGHT - 110, lastGapCenter + 140);
+    spawnY = minY + Math.random() * (maxY - minY);
+  }
+
   powerups.push({
-    x: WIDTH + 30,
-    y: 120 + Math.random() * 390,
+    x: spawnX,
+    y: spawnY,
     radius: 18,
     type,
     pulse: 0,
     collected: false
   });
 }
+
 
 
 function activatePowerup(type) {
